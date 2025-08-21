@@ -5,6 +5,11 @@ import os
 import cv2
 # from matplotlib import pyplot as plt
 import argparse
+import os
+
+from datetime import datetime
+
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
 def parse_args():
     parser = argparse.ArgumentParser(description="KLT tracking with forward-backward check, save tracks.csv next to input.")
@@ -16,13 +21,11 @@ def parse_args():
 args = parse_args()
 
 
-# INPUT_PATH = "/home/snt/projects_lujun/benchmarking_nature_tsfm/data/video/LaSOT/swing/swing/swing-2/img" 
-
 INPUT_PATH = args.input_path
 parent_dir = os.path.dirname(INPUT_PATH)
 print(parent_dir)
-OUTPUT_CSV = os.path.join(parent_dir, "tracks_ts.csv")
-
+OUTPUT_CSV = os.path.join(parent_dir, f"tracks_ts{timestamp}.csv")
+OUTPUT_mp4 = os.path.join(parent_dir, f"output_ts{timestamp}.mp4")
 
 MAX_CORNERS = 30
 QUALITY_LEVEL = 0.05
@@ -31,15 +34,17 @@ BLOCK_SIZE = 3
 USE_HARRIS = False  
 K_HARRIS = 0.04 
 
-WIN_SIZE = (40, 40)
+WIN_SIZE = (40, 40)  ## Original size 21 21 
 MAX_LEVEL = 3
 TERM_CRITERIA = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 30, 0.01)
 
-REDETECT_INTERVAL = 100  
-FB_ERR_THRESH = 2.5
-ERR_THRESH = 30.0
-DRAW_TRAJ_LEN = 30      
+REDETECT_INTERVAL = 50  
+FB_ERR_THRESH = 50.0 # Original 1.5  
+ERR_THRESH = 80.0  # Original 30.0
 
+DRAW_TRAJ_LEN = 100      
+
+ 
 
 
 class FrameReader:
@@ -71,20 +76,25 @@ class FrameReader:
             self.cap.release()
         
 
-def detect_features(gray, mask=None, max_corners=MAX_CORNERS):
+fgbg = cv2.createBackgroundSubtractorMOG2(
+    history=200,
+    varThreshold=25, 
+    detectShadows=False 
+)
+
+def detect_features(frame, max_corners=200):
+
+    fgmask = fgbg.apply(frame)
+    fgmask = cv2.medianBlur(fgmask, 5)  
+
     pts = cv2.goodFeaturesToTrack(
-        gray,
+        frame,
         maxCorners=max_corners,
-        qualityLevel=QUALITY_LEVEL,
-        minDistance=MIN_DISTANCE,
-        blockSize=BLOCK_SIZE,
-        useHarrisDetector=USE_HARRIS,
-        k=K_HARRIS,
-        mask=mask
+        qualityLevel=0.01,
+        minDistance=10,
+        mask=fgmask
     )
-    if pts is None:
-        return np.empty((0,1,2), dtype=np.float32)
-    return np.float32(pts)
+    return np.float32(pts) if pts is not None else np.empty((0,1,2), dtype=np.float32)
 
 
 def forward_backward_check(prev_gray, curr_gray, p0):
@@ -118,7 +128,8 @@ if not ok:
 h, w = frame0.shape[:2]
 prev_gray = cv2.cvtColor(frame0, cv2.COLOR_BGR2GRAY)
 
-
+fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
+out = cv2.VideoWriter(OUTPUT_mp4, fourcc, 10, (w, h)) 
 
 import matplotlib.pyplot as plt
 from IPython.display import display, clear_output
@@ -184,24 +195,25 @@ while True:
         for tid in active_ids:
             x, y = tracks[tid][-1][1], tracks[tid][-1][2]
             cv2.circle(mask, (int(x), int(y)), MIN_DISTANCE, 0, -1)
-        new_pts = detect_features(gray, mask=mask, max_corners=MAX_CORNERS // 2)
+        new_pts = detect_features(gray, max_corners=MAX_CORNERS // 2)
         if new_pts is not None and len(new_pts) > 0:
             add_points(new_pts, t)
 
-    # vis = frame.copy()
-    # for tid in active_ids:
-    #     c = colors[tid]
-    #     pts_list = vis_traj[tid]
-    #     for i in range(1, len(pts_list)):
-    #         cv2.line(vis, pts_list[i-1], pts_list[i], c, 2)
-    #     if len(pts_list) > 0:
-    #         cv2.circle(vis, pts_list[-1], 3, c, -1)
+    vis = frame.copy()
+    for tid in active_ids:
+        c = colors[tid]
+        pts_list = vis_traj[tid]
+        for i in range(1, len(pts_list)):
+            cv2.line(vis, pts_list[i-1], pts_list[i], c, 2)
+        if len(pts_list) > 0:
+            cv2.circle(vis, pts_list[-1], 3, c, -1)
 
-    # cv2.putText(vis, f"t={t} active_tracks={len(active_ids)}",
-    #             (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0,255,0), 2)
+    cv2.putText(vis, f"t={t} active_tracks={len(active_ids)}",
+                (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0,255,0), 2)
 
 
-    clear_output(wait=True)
+    out.write(vis)
+    # clear_output(wait=True)
     # plt.imshow(cv2.cvtColor(vis, cv2.COLOR_BGR2RGB))
     # plt.title(f"t={t}, active_tracks={len(active_ids)}")
     # plt.axis("off")
@@ -209,6 +221,7 @@ while True:
     # plt.pause(0.1)
     prev_gray = gray
 
+out.release() 
 # plt.ioff()
 # plt.show()
 
@@ -220,3 +233,6 @@ with open(OUTPUT_CSV, "w", newline="") as f:
             writer.writerow([tid, tt, f"{xx:.3f}", f"{yy:.3f}"])
     print(f"Save_to: {OUTPUT_CSV}")
 
+
+
+# python script/extract_ts_using_optical_flow_with_object_detection.py /home/snt/projects_lujun/benchmarking_nature_tsfm/data/video/LaSOT/swing/swing/swing-14/img
