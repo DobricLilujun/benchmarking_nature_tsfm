@@ -1,5 +1,9 @@
 # benchmarking_nature_tsfm
 
+[![Paper](https://img.shields.io/badge/Paper-arXiv%202509.26347-B31B1B?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2509.26347)
+[![Dataset](https://img.shields.io/badge/Dataset-Hugging%20Face-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/datasets/Volavion/real-v-tsfm)
+[![Docs](https://img.shields.io/badge/Docs-GitHub%20Pages-222222?logo=githubpages&logoColor=white)](https://dobriclilujun.github.io/benchmarking_nature_tsfm/)
+
 A reusable toolkit and benchmark workflow for extracting time series from videos and evaluating forecasting models.
 
 ## Introduction
@@ -58,40 +62,41 @@ In internal analysis, we observed about 44 percent stationary series in extracte
   <img src="source/photos/video_optical_flow.png" alt="Optical flow extraction pipeline" width="760" />
 </p>
 
-## Library and CLI
+## Usage
 
-This repository has been refactored into a reusable package with stable command-line interfaces.
-
-Main commands:
+Core CLI commands:
 1. rvtsfm-extract
 2. rvtsfm-eval
 
-Backward compatibility:
-1. script/extract_ts_using_optical_flow_with_object_detection.py remains available and now delegates to the new extraction CLI.
+Legacy script support is kept via:
+1. script/extract_ts_using_optical_flow_with_object_detection.py
 
 ## Install
 
-Using uv:
-
+```bash
+# Recommended
 uv sync
 uv pip install -e .
 
-Using pip:
-
+# Alternative
 pip install -e .
+```
 
 ## Quick Start
 
-Extract tracks from a frame directory:
+Extract tracks from image frames:
 
+```bash
 rvtsfm-extract /path/to/sequence/img \
   --output-dir ./outputs/sequence_01 \
   --detector foreground \
   --max-corners 30 \
   --redetect-interval 50
+```
 
-Run generic forecasting evaluation:
+Run forecasting evaluation:
 
+```bash
 rvtsfm-eval ./data/dataset/real-v-tsfm-shortened.jsonl \
   --file-format jsonl \
   --id-col unique_id \
@@ -101,92 +106,40 @@ rvtsfm-eval ./data/dataset/real-v-tsfm-shortened.jsonl \
   --prediction-length 50 \
   --stride 50 \
   --output-dir ./results/baseline_eval
+```
 
-Generated reports:
-1. segment_metrics.csv
-2. summary_metrics.csv
 
-## Evaluation Metrics
+## Evaluator Notes
 
-Unified metrics currently include:
+Metrics:
 1. MAPE
 2. sMAPE
 3. Agg_Relative_WQL
 4. Agg_Relative_MASE
 
-linear_trend is used as the default reference model for relative metrics.
+Default reference model for relative metrics: linear_trend.
 
-## Bring Your Own Predictor
+Accepted data layouts:
+1. One-row-per-series with list-like target
+2. Long format (id, time, target)
+3. Wide format (multiple numeric columns)
 
-You can evaluate any custom model with --custom-predictor module:attribute.
-
-Function style interface:
-
-def my_predictor(history, horizon, **kwargs):
-    return prediction_array
-
-Class style interface:
-
-class MyPredictor:
-    def __init__(self, **kwargs):
-        ...
-
-    def predict(self, history, horizon):
-        return prediction_array
-
-Example usage:
-
-rvtsfm-eval ./my_data.csv \
-  --models linear_trend custom \
-  --custom-predictor my_package.my_module:MyPredictor \
-  --custom-predictor-kwargs '{"device":"cuda"}'
-
-## Data Layout Support
-
-The evaluator can read:
-1. One-row-per-series with list-like target column.
-2. Long format with id, time, target columns.
-3. Wide format with multiple numeric columns per row.
-
-Supported formats:
+Supported file formats:
 1. csv
 2. jsonl
 3. json
 4. parquet
 
-## Environment Setup Notes
+Custom predictor hook:
+1. Use --custom-predictor module:attribute
+2. Supports function-style and class-style predictors
 
-To install the required dependencies and set up the environment, use uv.lock:
-1. Ensure uv is installed.
-2. Run uv sync.
-3. Optionally run uv pip install -e . to install editable package entry points.
+## Privacy Checklist
 
-If you encounter issues, check uv installation and Python version compatibility.
-
-## GitHub Pages
-
-This repo includes a Pages scaffold under docs and workflow under .github/workflows/pages.yml.
-
-Important: If Pages is not enabled for the repository, deployment will fail with a 404 error in actions/deploy-pages.
-
-Required setup in GitHub:
-1. Open repository settings page:
-  https://github.com/DobricLilujun/benchmarking_nature_tsfm_backup/settings/pages
-2. In Build and deployment, set Source to GitHub Actions.
-3. Save settings, then re-run the Deploy GitHub Pages workflow.
-
-Recommended URL pattern:
-https://dobriclilujun.github.io/<project-name>/
-
-Example for this repository name:
-https://dobriclilujun.github.io/benchmarking_nature_tsfm_backup/
-
-## Notes on Privacy and Redistribution
-
-When publishing extracted datasets or demos:
-1. Confirm original video dataset licenses and redistribution policies.
-2. Remove private absolute local paths from scripts, logs, and docs.
-3. Avoid shipping sensitive metadata in generated files.
+Before publishing extracted data or demos:
+1. Confirm source dataset license and redistribution policy
+2. Remove local absolute paths from scripts, logs, and docs
+3. Exclude sensitive metadata from released artifacts
 
 ## Please cite
 
