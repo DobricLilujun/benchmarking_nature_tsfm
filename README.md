@@ -187,3 +187,17 @@ When publishing extracted datasets or demos:
 1. Confirm original video dataset licenses and redistribution policies.
 2. Remove private absolute local paths from scripts, logs, and docs.
 3. Avoid shipping sensitive metadata in generated files.
+
+## Please cite
+
+```bibtex
+@misc{li2025uncoveringzeroshotgeneralizationgaps,
+  title={Uncovering Zero-Shot Generalization Gaps in Time-Series Foundation Models Using Real-World Videos},
+  author={Lujun Li and Lama Sleem and Yiqun Wang and Yangjie Xu and Niccolo Gentile and Radu State},
+  year={2025},
+  eprint={2509.26347},
+  archivePrefix={arXiv},
+  primaryClass={cs.AI},
+  url={https://arxiv.org/abs/2509.26347},
+}
+```
