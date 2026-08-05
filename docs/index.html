@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>benchmarking_nature_tsfm</title>
+  <style>
+    :root {
+      --bg: #f6f8fa;
+      --ink: #1f2328;
+      --muted: #59636e;
+      --line: #d0d7de;
+      --panel: #ffffff;
+      --brand: #0969da;
+      --brand-2: #1f6feb;
+      --ok: #1a7f37;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      border-bottom: 1px solid var(--line);
+      background: rgba(246, 248, 250, 0.92);
+      backdrop-filter: blur(6px);
+    }
+
+    .topbar-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .nav {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 0.94rem;
+    }
+
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      padding-bottom: 1px;
+    }
+
+    .nav a:hover {
+      color: var(--brand);
+      border-color: var(--brand);
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 20px 64px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 22px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      line-height: 1.2;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.35rem;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .hero {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .hero-top {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .hero-top img {
+      width: 94px;
+      height: auto;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      max-width: 760px;
+      font-size: 1.03rem;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 600;
+    }
+
+    .badge.ok {
+      border-color: #b5e2c0;
+      color: var(--ok);
+      background: #f0fff4;
+    }
+
+    .main-grid {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .section p + p,
+    .section p + ol,
+    .section p + ul,
+    .section ol + p,
+    .section ul + p,
+    .section ol + .visual,
+    .section ul + .visual {
+      margin-top: 12px;
+    }
+
+    .visual {
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    .visual img {
+      width: min(100%, 880px);
+      border-radius: 10px;
+      border: 1px solid var(--line);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .card h3 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+
+    code,
+    pre {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.92rem;
+    }
+
+    code {
+      background: #f6f8fa;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 1px 6px;
+    }
+
+    pre {
+      margin: 8px 0 0;
+      overflow-x: auto;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f6f8fa;
+      border: 1px solid var(--line);
+    }
+
+    a {
+      color: var(--brand);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--brand-2);
+      text-decoration: underline;
+    }
+
+    .resource-list {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 14px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding-top: 20px;
+      }
+
+      .panel,
+      .section {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">benchmarking_nature_tsfm</div>
+      <nav class="nav">
+        <a href="#overview">Overview</a>
+        <a href="#dataset">Dataset</a>
+        <a href="#pipeline">Pipeline</a>
+        <a href="#quickstart">Quick Start</a>
+        <a href="#resources">Resources</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel hero" id="overview">
+      <div class="hero-top">
+        <img src="assets/photos/logo.png" alt="REAL-V-TSFM logo" />
+        <div>
+          <h1>benchmarking_nature_tsfm</h1>
+          <p class="subtitle">Open-source toolkit for extracting time series from video motion and benchmarking forecasting models with a reusable CLI workflow.</p>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="badge ok">Open Source</span>
+        <span class="badge">Python &gt;= 3.10</span>
+        <span class="badge">CLI: rvtsfm-extract</span>
+        <span class="badge">CLI: rvtsfm-eval</span>
+      </div>
+    </section>
+
+    <section class="main-grid">
+      <section class="section">
+        <h2>Introduction</h2>
+        <p>This project supports the paper How Far Do Time Series Foundation Models Paint the Landscape of Real-World Benchmarks? and proposes a practical benchmark paradigm using optical-flow extracted signals from large-scale videos.</p>
+        <p>Dataset: <a href="https://huggingface.co/datasets/Volavion/real-v-tsfm">REAL-V-TSFM on Hugging Face</a></p>
+        <div class="visual">
+          <img src="assets/photos/output_max_10.png" alt="REAL-V-TSFM visual sample" />
+        </div>
+      </section>
+
+      <section class="section" id="dataset">
+        <h2>Datasets</h2>
+        <p>We mainly use LaSOT-style video sources to derive foreground and background motion trajectories, preserving realistic temporal diversity.</p>
+        <ul>
+          <li><code>t</code>: temporal index</li>
+          <li><code>target</code>: value at time t</li>
+          <li><code>axis</code>: x/y direction</li>
+          <li><code>track_id</code>: optical-flow track identifier</li>
+          <li><code>timestamp</code>: model-friendly formatting field</li>
+          <li><code>prefix</code>: source video identifier</li>
+        </ul>
+        <div class="visual">
+          <img src="assets/photos/human_swings2025825011251.gif" alt="Human swing motion example" />
+        </div>
+      </section>
+
+      <section class="section" id="pipeline">
+        <h2>Pipeline</h2>
+        <ol>
+          <li>Video collection and frame preparation</li>
+          <li>Foreground-aware feature detection</li>
+          <li>Optical-flow tracking with forward-backward checks</li>
+          <li>Trajectory post-processing into time-series tables</li>
+        </ol>
+        <p>In analysis, around 44 percent of extracted series are stationary versus around 5 percent in M4, showing a clear temporal profile difference from classic benchmarks.</p>
+        <div class="visual">
+          <img src="assets/photos/video_optical_flow.png" alt="Optical flow extraction pipeline" />
+        </div>
+      </section>
+
+      <section class="section" id="quickstart">
+        <h2>Quick Start</h2>
+        <div class="cards">
+          <article class="card">
+            <h3>Install</h3>
+            <pre>uv sync
+uv pip install -e .</pre>
+          </article>
+          <article class="card">
+            <h3>Extract Tracks</h3>
+            <pre>rvtsfm-extract /path/to/sequence/img \
+  --output-dir ./outputs/run_01</pre>
+          </article>
+          <article class="card">
+            <h3>Run Evaluation</h3>
+            <pre>rvtsfm-eval ./data/sample.jsonl \
+  --file-format jsonl \
+  --id-col unique_id \
+  --target-col target</pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="resources">
+        <h2>Resources</h2>
+        <ul class="resource-list">
+          <li>Repository: <a href="https://github.com/dobriclilujun/benchmarking_nature_tsfm_backup">github.com/dobriclilujun/benchmarking_nature_tsfm_backup</a></li>
+          <li>Dataset: <a href="https://huggingface.co/datasets/Volavion/real-v-tsfm">huggingface.co/datasets/Volavion/real-v-tsfm</a></li>
+          <li>Documentation source: <a href="https://github.com/dobriclilujun/benchmarking_nature_tsfm_backup/blob/main/README.md">README.md</a></li>
+        </ul>
+      </section>
+    </section>
+
+    <p class="footer">Built for open research and reproducible benchmarking.</p>
+  </main>
+</body>
+</html>
